@@ -34,17 +34,14 @@ df = pd.read_csv(processed_file, delimiter=';', parse_dates=['time'], dayfirst=T
 # Extract specific columns
 time = df['time']  # Parsed as datetime
 T_actual = pd.to_numeric(df['Buitentemperatuur'], errors='coerce')  # Outdoor temperature
-#light_intensity = pd.to_numeric(df['Lichtintensiteit zuid'], errors='coerce')  # Light intensity
 export_limit = pd.to_numeric(df['Export beperking'], errors='coerce')  # Export limit as percentage
 global_radiation = pd.to_numeric(df['Globale straling'], errors='coerce') # Global Radiation
 
 # Handle missing data
 T_actual.fillna(method='ffill', inplace=True)  # Fill temperature NaNs with the previous value
-#light_intensity.fillna(0, inplace=True)  # Replace missing light intensity with 0
 export_limit.fillna(100, inplace=True)  # Replace missing export limits with 100%
 global_radiation.fillna(0, inplace=True) # Replace missing global radiation with 0
 
-# For the sun, convert lux to W/m^2: 1 lux = 0.0079 W/m^2 and multiply by amount of panels
 global_radiation = global_radiation * panel_area * amount_of_panels
 
 # Calculate Power Output per panel
@@ -58,27 +55,31 @@ P_raw = np.clip(P_raw, 0, None)  # Set negative values to 0
 export_factor = export_limit / 100.0  # Convert percentage to a multiplier
 P_adjusted = P_raw * export_factor  # Apply export limit
 
+# Convert power values from Watts to Kilowatts
+P_raw_kW = P_raw / 1000
+P_adjusted_kW = P_adjusted / 1000
+
 # Calculate Energy Outputs
 dt = 1 / 12  # Time interval in hours (5-minute intervals = 1/12 hour)
-E_raw = np.sum(P_raw) * dt  # Total energy output
-E_lost = np.sum(P_adjusted) * dt  # Total energy lost due to export limit
+E_raw = np.sum(P_raw_kW) * dt  # Total energy output
+E_lost = np.sum(P_adjusted_kW) * dt  # Total energy lost due to export limit
 
 # Display Results and put them in graph
-print(f"Total Energy Output: {E_raw:.2f} Wh")
-print(f"Total Energy Lost (Due to Export Limit): {E_lost:.2f} Wh")
+print(f"Totale theoretische opwekking: {E_raw:.2f} kWh")
+print(f"Totale misgelopen energie: {E_lost:.2f} kWh")
 
 # Plot Results
 plt.figure(figsize=(12, 6))
-plt.plot(time, P_adjusted, '-o', label="Misgelopen Energie", markersize=4, color='green')
-plt.plot(time, P_raw, '-o', label="Totale Solar output", markersize=4, color='red')
-plt.xlabel('Time')
-plt.ylabel('Power (W)')
-plt.title('Energie van zonnepanelen dat niet opgewekt wordt door export beperking')
+plt.plot(time, P_adjusted_kW, '-o', label="Misgelopen Energie", markersize=4, color='green')
+plt.plot(time, P_raw_kW, '-o', label="Totale Theoretische Output", markersize=4, color='red')
+plt.xlabel('Tijd')
+plt.ylabel('Vermogen (kW)')
+plt.title('Exportbeperking kwantificeren')
 plt.grid(True)
 plt.legend()
 # display end results in graph
-plt.text(time.iloc[0], P_raw.max(), f"Totale Energie: {E_raw:.2f} Wh", fontsize=12, color='red')
-plt.text(time.iloc[0], P_adjusted.max(), f"Misgelopen Energie: {E_lost:.2f} Wh", fontsize=12, color='green')
+plt.text(time.iloc[0], P_raw_kW.max(), f"Totale Theoretische Energie: {E_raw:.2f} kWh", fontsize=12, color='red')
+plt.text(time.iloc[0], P_adjusted_kW.max(), f"Misgelopen Energie: {E_lost:.2f} kWh", fontsize=12, color='green')
 
 # Improve datetime formatting on x-axis
 plt.gcf().autofmt_xdate()
