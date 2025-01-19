@@ -1,11 +1,11 @@
 import pandas as pd
 import matplotlib
-matplotlib.use('TkAgg')  # Or 'Agg', 'Qt5Agg', depending on your system
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-# Original data for Building A
+# Original data for Building A (Citadel)
 data = {
-    'month': ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    'month': ['Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December'],
     'generated_kwh': [
         1245.8249984400027, 2716.2750007499853, 5206.800000069998, 8563.500009900017,
         12422.250011630022, 13765.57499645, 13237.64997920995, 8970.074988159933,
@@ -25,9 +25,9 @@ df = pd.DataFrame(data)
 total_consumption_A = df['consumption_kwh'].sum()
 total_generation_A = df['generated_kwh'].sum()
 
-# Total consumption and generation for Building B (given)
+# Total end consumption and generation for Building B (given) (De Passie)
 total_consumption_B = 289000
-total_generation_B = 90920
+total_generation_B = 133154
 
 # Calculate estimated monthly consumption for Building B
 df['estimated_consumption_B'] = (df['consumption_kwh'] / total_consumption_A) * total_consumption_B
@@ -57,9 +57,9 @@ csv_df = pd.read_csv(StringIO(csv_file), sep=';', decimal=',', quotechar='"')
 
 # Process the CSV data
 csv_df['month'] = csv_df['time'].str[:2].replace({
-    '01': 'January', '02': 'February', '03': 'March', '04': 'April',
-    '05': 'May', '06': 'June', '07': 'July', '08': 'August',
-    '09': 'September', '10': 'October', '11': 'November', '12': 'December'
+    '01': 'Januari', '02': 'Februari', '03': 'Maart', '04': 'April',
+    '05': 'Mei', '06': 'Juni', '07': 'Juli', '08': 'Augustus',
+    '09': 'September', '10': 'Oktober', '11': 'November', '12': 'December'
 })
 csv_df.rename(columns={
     'Elektra Gebouwgebonden': 'consumption_kwh',
@@ -76,17 +76,19 @@ plt.figure(figsize=(10, 6))
 # Original Building A and B data
 #plt.plot(df['month'], df['consumption_kwh'], marker='o', color='tab:red', label='Consumption (kWh) - Citadel 2023')
 #plt.plot(df['month'], df['generated_kwh'], marker='o', color='tab:blue', label='Generation (kWh) - Citadel 2023')
-plt.plot(df['month'], df['estimated_consumption_B'], marker='o', color='tab:orange', linestyle='--', label='Estimated Consumption (kWh) - Passie')
-plt.plot(df['month'], df['estimated_generation_B'], marker='o', color='tab:green', linestyle='--', label='Estimated Generation (kWh) - Passie')
+
+
+plt.plot(df['month'], df['estimated_consumption_B'], marker='o', color='tab:orange', linestyle='--', label='Verwachte consumptie (kWh) - Passie')
+#plt.plot(df['month'], df['estimated_generation_B'], marker='o', color='tab:green', linestyle='--', label='Verwachte opwekking (kWh) - Passie')
 
 # CSV data
-plt.plot(csv_df['month'], csv_df['consumption_kwh'], marker='o', color='tab:red', label='Consumption (kWh) - De Passie 2024')
-plt.plot(csv_df['month'], csv_df['generated_kwh'], marker='o', color='tab:blue', label='Generation (kWh) - De Passie 2024')
+plt.plot(csv_df['month'], csv_df['consumption_kwh'], marker='o', color='tab:red', label='Consumptie (kWh) - De Passie 2024')
+#plt.plot(csv_df['month'], csv_df['generated_kwh'], marker='o', color='tab:blue', label='Opwekking (kWh) - De Passie 2024')
 
 # Labels and title
-plt.xlabel('Month')
-plt.ylabel('Energy (kWh)')
-plt.title('Actual and estimated consumption and generation of De Passie')
+plt.xlabel('Maand')
+plt.ylabel('Vermogen (kWh)')
+plt.title('Vergelijking energieconsumptie en simulatie - De Passie Wierden 2024')
 
 # Rotate x-axis labels for better readability
 plt.xticks(rotation=45)
